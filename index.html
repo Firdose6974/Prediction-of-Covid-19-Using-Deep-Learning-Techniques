@@ -1,0 +1,86 @@
+<html>
+	<head>
+		<title>COVID-19 TESTING</title>
+        <link rel="stylesheet" type = "text/css" href="{{ url_for('static',filename='styles/home.css')}}">
+        <script class="jsbin" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+	</head>
+
+	<body>
+		<h1 style="color: #1FB264; text-align: center; margin-top: 65px;">COVID-19 TESTING USING X-RAY IMAGES</h1>
+		<!-- <input id="image-selector" type="file">  -->
+
+		<!-- <img id="selected-image" width="400" src=""/> -->
+
+        <div class="file-upload">
+            <button class="file-upload-btn" type="button" onclick="$('.file-upload-input').trigger( 'click' )">Add Image</button>
+            <div class="image-upload-wrap">
+                <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
+                <div class="drag-text">
+                  <h3>Drag and drop a file or select add Image</h3>
+                </div>
+              </div>
+              <div class="file-upload-content">
+                <img class="file-upload-image" src="#" alt="your image" />
+                <div class="image-title-wrap">
+                  <button type="button" onclick="removeUpload()" class="remove-image">Remove <span class="image-title">Uploaded Image</span></button>
+                </div>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 45px;">
+                <!-- <button id="predict-button">Predict</button> -->
+                <button id="predict-button" class="file-upload-btn" type="button" style="width: 20%;">Predict</button>
+                <p class="error" style="color: red"></p>
+                <div class="result">
+                  <p style="color: #1FB264; margin-top: 55px;">PREDICTION: <span id="result" style="color: red">...</span></p>
+                  <p style="color: #1FB264;">PROBABILITY: <span id="probability" style="color: red">...</span></p>
+                </div>
+            </div>
+
+	</body>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="{{ url_for('static', filename = 'scripts/home.js')}}"></script>
+
+<script>
+    let base64Image;
+    $("#image-selector").change(function() {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            let dataURL = reader.result;
+            $('#selected-image').attr("src", dataURL);
+            base64Image = dataURL.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
+            console.log(base64Image);
+        }
+        reader.readAsDataURL($("#image-selector")[0].files[0]);
+        $("#result").text("");
+        $("#probability").text("");
+
+    });
+
+    $("#predict-button").click(function(){
+            let message = {
+            image: base64Image
+        }
+        console.log(message);
+        $.post("http://127.0.0.1:5000/predict", JSON.stringify(message), function(response){
+            if(response.prediction.success === false){
+              console.log("Error")
+              $(".error").text("Error has occurred, Please Upload the File Again in PNG/JPEG/JPG");
+              $(".error").show();
+              $(".result").hide()
+
+
+            }
+            else{
+            $(".error").hide();
+            $(".result").show()
+            $("#result").text(response.prediction.result);
+            $("#probability").text(response.prediction.accuracy.toFixed(2));
+            console.log(response);
+          }
+        });
+    });
+    
+</script>
+
+</html>
